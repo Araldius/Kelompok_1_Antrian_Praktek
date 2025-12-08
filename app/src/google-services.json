@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "423021229675",
+    "project_id": "kelompok-1-uts-antrian-praktek",
+    "storage_bucket": "kelompok-1-uts-antrian-praktek.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:423021229675:android:629642967b20c172e7632e",
+        "android_client_info": {
+          "package_name": "com.example.kelompok_1_uts_antrian_praktek"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClO_LuFAchZBtQGxEQ3pfuOZM3SKPfup4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
