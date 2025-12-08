@@ -1,10 +1,13 @@
-package com.example.kelompok_1_uts_antrian_praktek
+package com.example.kelompok_1_uts_antrian_praktek.ui.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.example.kelompok_1_uts_antrian_praktek.R
+import com.example.kelompok_1_uts_antrian_praktek.data.SessionManager
 import com.example.kelompok_1_uts_antrian_praktek.databinding.ListItemAntrianBinding
+import com.example.kelompok_1_uts_antrian_praktek.model.Antrian
 
 class AntrianAdapter(
     private var antrianList: List<Antrian>,
@@ -26,19 +29,18 @@ class AntrianAdapter(
         holder.binding.apply {
             tvNomorAntrian.text = antrian.nomorAntrian.toString()
             tvNamaPasien.text = antrian.namaPasien
-            tvStatus.text = "${antrian.status} • ${antrian.keluhan}" // Tampilkan keluhan sedikit
+            tvStatus.text = "${antrian.status} • ${antrian.keluhan}"
 
-            // Warna Status
             when (antrian.status) {
-                "Dipanggil" -> tvStatus.setTextColor(ContextCompat.getColor(context, R.color.green_primary))
-                "Selesai" -> tvStatus.setTextColor(ContextCompat.getColor(context, R.color.status_selesai))
-                else -> tvStatus.setTextColor(ContextCompat.getColor(context, R.color.status_menunggu))
+                "Dipanggil" -> tvStatus.setTextColor(ContextCompat.getColor(context, R.color.green_primary)) // Pastikan warna ini ada di colors.xml
+                "Selesai" -> tvStatus.setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray))
+                else -> tvStatus.setTextColor(ContextCompat.getColor(context, android.R.color.holo_orange_dark))
             }
 
             // Highlight punya sendiri
-            if (antrian.userId == DummyData.currentLoggedInUserId) {
+            if (antrian.userId == SessionManager.currentLoggedInUserId) {
                 root.strokeWidth = 4
-                root.strokeColor = ContextCompat.getColor(context, R.color.green_light)
+                root.strokeColor = ContextCompat.getColor(context, R.color.green_primary)
             } else {
                 root.strokeWidth = 0
             }
@@ -48,7 +50,7 @@ class AntrianAdapter(
             if (isAdmin) {
                 onItemClicked(antrian)
             } else {
-                if (antrian.userId == DummyData.currentLoggedInUserId) {
+                if (antrian.userId == SessionManager.currentLoggedInUserId) {
                     onItemClicked(antrian)
                 }
             }

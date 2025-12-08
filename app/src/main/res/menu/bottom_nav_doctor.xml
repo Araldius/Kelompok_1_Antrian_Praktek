@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_doctor_home"
+        android:icon="@drawable/ic_home"
+        android:title="Dashboard" />
+    <item
+        android:id="@+id/nav_doctor_schedule"
+        android:icon="@drawable/ic_schedule"
+        android:title="Lihat Jadwal" />
+    <item
+        android:id="@+id/nav_doctor_menu"
+        android:icon="@drawable/ic_menu"
+        android:title="Profil" />
+</menu>

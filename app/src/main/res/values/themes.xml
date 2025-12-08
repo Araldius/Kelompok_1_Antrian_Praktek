@@ -1,10 +1,12 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.UTS_Kelompok_1" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.Kelompok1_Uts_Antrian_Praktek" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/green_primary</item>
         <item name="colorPrimaryVariant">@color/green_dark</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:windowBackground">@color/light_gray_background</item>
     </style>
-    <style name="Theme.Kelompok_1_UTS_Antrian_Praktek.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-    <style name="Theme.Kelompok_1_UTS_Antrian_Praktek.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="Theme.Kelompok1_Uts_Antrian_Praktek.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="Theme.Kelompok1_Uts_Antrian_Praktek.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

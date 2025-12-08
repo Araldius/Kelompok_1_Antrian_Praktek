@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".ScheduleActivity">
+    android:background="@color/white">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        app:title="Jadwal Praktek"
-        app:titleTextColor="@android:color/white" />
+        android:layout_height="wrap_content"
+        android:text="Atur Jadwal Praktek"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:padding="16dp"
+        android:background="#F5F5F5"/>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_schedule"
+        android:id="@+id/rv_schedule_admin"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:listitem="@layout/list_item_schedule_admin" />
+        tools:listitem="@layout/list_item_schedule_admin"/>
 </LinearLayout>

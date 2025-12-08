@@ -5,85 +5,77 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".QueueFormActivity">
+    android:background="@color/white"
+    tools:context=".ui.activity.QueueFormActivity">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
-        app:title="Ambil Nomor Antrian"
-        app:titleTextColor="@android:color/white" />
-
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:title="@string/title_queue_form"
+        app:titleTextColor="@color/white"
+        app:navigationIcon="@drawable/abc_ic_ab_back_material"/>
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="24dp">
+
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:startIconDrawable="@drawable/ic_person">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPatientName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Nama Pasien"
-                    android:inputType="textPersonName|textCapWords"
-                    android:minHeight="48dp" />
+                    android:hint="@string/label_patient_name"
+                    android:inputType="textPersonName|textCapWords" />
             </com.google.android.material.textfield.TextInputLayout>
+
             <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp">
+                android:layout_marginBottom="32dp">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etComplaint"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="top"
-                    android:hint="Keluhan Awal"
+                    android:layout_height="120dp"
+                    android:gravity="top|start"
+                    android:hint="@string/label_complaint"
                     android:inputType="textMultiLine"
-                    android:lines="3"
-                    android:minHeight="48dp" />
+                    android:lines="4"/>
             </com.google.android.material.textfield.TextInputLayout>
+
             <Button
-                android:id="@+id/btnTakePhoto"
-                style="@style/Widget.Material3.Button.OutlinedButton.Icon"
+                android:id="@+id/btnSubmitQueue"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:layout_marginTop="24dp"
-                android:text="Ambil Foto Keluhan (Jika Ada)"
-                app:icon="@drawable/ic_camera" />
-            <ImageView
-                android:id="@+id/ivPhotoPreview"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="16dp"
-                android:scaleType="centerCrop"
-                android:visibility="gone"
-                tools:src="@tools:sample/avatars"
-                tools:visibility="visible" />
-            <FrameLayout
-                android:layout_width="match_parent"
+                android:text="@string/btn_submit_queue"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:backgroundTint="@color/green_primary"/>
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp">
-                <Button
-                    android:id="@+id/btnSubmitQueue"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:text="Daftar Antrian" />
-                <ProgressBar
-                    android:id="@+id/progressBar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:visibility="gone" />
-            </FrameLayout>
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"/>
+
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

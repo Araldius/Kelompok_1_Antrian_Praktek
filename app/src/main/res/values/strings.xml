@@ -1,23 +1,43 @@
 <resources>
     <string name="app_name">MedQ</string>
 
-    <!-- AuthActivity -->
-    <string name="auth_title">Selamat Datang</string>
-    <string name="auth_register_title">Buat Akun Baru</string>
-    <string name="auth_email_hint">Email</string>
-    <string name="auth_password_hint">Password</string>
-    <string name="auth_login_button">Login</string>
-    <string name="auth_register_button">Daftar</string>
-    <string name="auth_register_prompt">Belum punya akun? <b>Registrasi di sini</b></string>
-    <string name="auth_login_prompt">Sudah punya akun? <b>Login di sini</b></string>
-    <string name="auth_error_empty_fields">Email dan password tidak boleh kosong</string>
-    <string name="auth_register_success">Registrasi berhasil! Selamat datang.</string>
+    <string name="auth_title_login">Selamat Datang</string>
+    <string name="auth_title_register">Buat Akun Baru</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_fullname">Nama Lengkap (Sesuai KTP)</string>
+    <string name="btn_login">Masuk</string>
+    <string name="btn_register">Daftar</string>
+    <string name="text_no_account">Belum punya akun? <b>Daftar di sini</b></string>
+    <string name="text_have_account">Sudah punya akun? <b>Login di sini</b></string>
+    <string name="error_empty_fields">Email, Password, dan Nama tidak boleh kosong</string>
+    <string name="error_login_failed">Login Gagal: %1$s</string>
+    <string name="error_register_failed">Registrasi Gagal: %1$s</string>
+    <string name="msg_register_success">Registrasi Berhasil! Silakan masuk.</string>
 
-    <!-- MainActivity -->
-    <string name="main_toolbar_title">Antrian Hari Ini</string>
-    <string name="main_nomor_dilayani_label">Nomor Dilayani</string>
-    <string name="main_nomor_anda_label">Nomor Anda</string>
-    <string name="main_estimation_format">Estimasi %1$d menit lagi</string>
-    <string name="main_no_queue_taken">Anda belum mengambil antrian</string>
-    <string name="empty_state_message">Belum ada antrian untuk hari ini.</string>
+    <string name="title_queue_form">Ambil Antrian</string>
+    <string name="label_patient_name">Nama Pasien</string>
+    <string name="label_complaint">Keluhan Utama</string>
+    <string name="hint_complaint_desc">Contoh: Demam, Batuk, Pusing...</string>
+    <string name="btn_submit_queue">Daftar Antrian</string>
+    <string name="msg_queue_success">Berhasil! Nomor Antrian Anda: %1$d</string>
+    <string name="msg_clinic_closed">Maaf, pendaftaran sedang DITUTUP.</string>
+    <string name="msg_check_connection">Gagal memuat data. Periksa koneksi internet.</string>
+    <string name="error_name_required">Nama wajib diisi</string>
+
+    <string name="title_home">Antrian Hari Ini</string>
+    <string name="label_nomor_dilayani">Sedang Dilayani</string>
+    <string name="label_nomor_anda">Nomor Anda</string>
+    <string name="text_estimation">Estimasi %1$d menit lagi</string>
+    <string name="text_no_queue">Belum ambil</string>
+    <string name="text_empty_state">Belum ada antrian hari ini.</string>
+    <string-array name="periode_options">
+        <item>Hari Ini</item>
+        <item>Seminggu</item>
+        <item>Sebulan</item>
+    </string-array>
+
+    <string name="menu_home">Beranda</string>
+    <string name="menu_schedule">Jadwal</string>
+    <string name="menu_profile">Menu</string>
 </resources>
