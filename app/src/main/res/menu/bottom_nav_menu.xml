@@ -9,6 +9,10 @@
         android:icon="@drawable/ic_schedule"
         android:title="Jadwal" />
     <item
+        android:id="@+id/nav_prediction"
+        android:icon="@drawable/ic_health"
+        android:title="Cek Risiko" />
+    <item
         android:id="@+id/nav_menu"
         android:icon="@drawable/ic_menu"
         android:title="Menu" />

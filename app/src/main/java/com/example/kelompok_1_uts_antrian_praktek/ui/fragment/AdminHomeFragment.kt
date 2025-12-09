@@ -15,6 +15,7 @@ import com.example.kelompok_1_uts_antrian_praktek.databinding.FragmentAdminHomeB
 import com.example.kelompok_1_uts_antrian_praktek.model.Antrian
 import com.example.kelompok_1_uts_antrian_praktek.ui.adapter.AntrianAdapter
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -22,156 +23,168 @@ class AdminHomeFragment : Fragment() {
 
     private var _binding: FragmentAdminHomeBinding? = null
     private val binding get() = _binding!!
-    private lateinit var antrianAdapter: AntrianAdapter
     private val db = FirebaseFirestore.getInstance()
-    private var listPasien: List<Antrian> = listOf()
+    private lateinit var antrianAdapter: AntrianAdapter
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentAdminHomeBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupRecycler()
-        observeData()
 
-        binding.btnPanggilBerikutnyaAdmin.setOnClickListener {
-            val current = listPasien.find { it.status == "Dipanggil" }
-            if (current != null) {
-                Toast.makeText(context, "Selesaikan dulu yang dipanggil", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            val next = listPasien.filter { it.status == "Menunggu" }.minByOrNull { it.nomorAntrian }
-            if (next != null) updateStatus(next.id, "Dipanggil")
-            else Toast.makeText(context, "Antrian kosong", Toast.LENGTH_SHORT).show()
+        setupRecyclerView()
+        loadAntrianHariIni()
+
+        // Tombol Tambah Antrian Manual
+        binding.fabAddManual.setOnClickListener {
+            showAddManualDialog()
         }
-
-        binding.btnSelesaiAdmin.setOnClickListener {
-            val current = listPasien.find { it.status == "Dipanggil" }
-            if (current != null) updateStatus(current.id, "Selesai")
-        }
-
-        binding.fabAddManual.setOnClickListener { showAddManualDialog() }
     }
 
-    private fun showAddManualDialog() {
-        val view = layoutInflater.inflate(R.layout.dialog_add_manual, null)
-        val dialog = AlertDialog.Builder(requireContext()).setView(view).create()
+    private fun setupRecyclerView() {
+        // Menggunakan adapter yang sama, enableDelete = true agar Admin bisa hapus
+        antrianAdapter = AntrianAdapter(emptyList(), true) { antrian ->
+            hapusAntrian(antrian)
+        }
+        binding.rvAdminAntrian.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvAdminAntrian.adapter = antrianAdapter
+    }
 
-        val btnSimpan = view.findViewById<Button>(R.id.btn_simpan_manual)
+    private fun loadAntrianHariIni() {
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+        db.collection("antrian").document(today).collection("pasien")
+            .orderBy("nomorAntrian", Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    Toast.makeText(context, "Gagal memuat data: ${e.message}", Toast.LENGTH_SHORT).show()
+                    return@addSnapshotListener
+                }
+
+                if (snapshots != null) {
+                    val list = snapshots.toObjects(Antrian::class.java)
+                    antrianAdapter.updateData(list)
+
+                    if (list.isEmpty()) {
+                        binding.tvEmptyStateAdmin.visibility = View.VISIBLE
+                    } else {
+                        binding.tvEmptyStateAdmin.visibility = View.GONE
+                    }
+                }
+            }
+    }
+
+    // --- LOGIKA TAMBAH MANUAL ---
+
+    private fun showAddManualDialog() {
+        // Inflate layout dialog kustom
+        val view = layoutInflater.inflate(R.layout.dialog_add_manual, null)
+        val dialog = AlertDialog.Builder(requireContext())
+            .setTitle("Tambah Pasien Manual")
+            .setView(view)
+            .create()
+
         val etNama = view.findViewById<EditText>(R.id.et_nama_pasien_manual)
         val etKeluhan = view.findViewById<EditText>(R.id.et_keluhan_manual)
+        val btnSimpan = view.findViewById<Button>(R.id.btn_simpan_manual)
 
         btnSimpan.setOnClickListener {
-            val nama = etNama.text.toString().trim() // Hapus spasi depan/belakang
+            val nama = etNama.text.toString().trim()
             val keluhan = etKeluhan.text.toString().trim()
 
-            if(nama.isNotEmpty()) {
-                // UPDATE: Jangan langsung simpan, cari dulu usernya
-                cariUserDanSimpan(nama, keluhan)
-                dialog.dismiss()
+            if (nama.isNotEmpty() && keluhan.isNotEmpty()) {
+                // Jangan langsung simpan, tapi CARI dulu usernya
+                btnSimpan.isEnabled = false // Cegah klik ganda
+                btnSimpan.text = "Mengecek..."
+                cariUserDanSimpan(nama, keluhan, dialog)
             } else {
-                etNama.error = "Nama wajib diisi"
+                Toast.makeText(context, "Nama dan Keluhan wajib diisi", Toast.LENGTH_SHORT).show()
             }
         }
+
         dialog.show()
     }
 
-    // --- FITUR PENCARIAN USER ---
-    private fun cariUserDanSimpan(nama: String, keluhan: String) {
-        // Cari di koleksi 'users' apakah ada nama yang persis sama
+    private fun cariUserDanSimpan(nama: String, keluhan: String, dialog: AlertDialog) {
+        // Query ke koleksi users untuk mencari nama yang sama persis
         db.collection("users")
             .whereEqualTo("fullName", nama)
-            .limit(1) // Ambil 1 saja jika ada kembar
+            .limit(1) // Ambil 1 saja yang cocok
             .get()
             .addOnSuccessListener { documents ->
-                var userIdTarget = "admin_manual" // Default ID jika user tidak ketemu
+                var userIdTarget = "admin_manual" // Default (Guest)
+                var pesan = "Menambahkan sebagai Pasien Manual"
 
                 if (!documents.isEmpty) {
-                    // USER KETEMU! Pakai UID aslinya
+                    // USER KETEMU!
                     val userDoc = documents.documents[0]
-                    userIdTarget = userDoc.getString("uid") ?: userDoc.id
-
-                    Toast.makeText(context, "Akun ditemukan! Data akan masuk ke riwayat ${userDoc.getString("email")}", Toast.LENGTH_LONG).show()
-                } else {
-                    // USER TIDAK KETEMU
-                    Toast.makeText(context, "Akun tidak ditemukan. Disimpan sebagai Pasien Manual.", Toast.LENGTH_SHORT).show()
+                    userIdTarget = userDoc.getString("uid") ?: "admin_manual"
+                    val emailUser = userDoc.getString("email")
+                    pesan = "Terhubung ke akun: $emailUser"
                 }
 
-                // Lanjut simpan dengan userId yang sudah ditentukan (Asli atau Manual)
-                simpanKeDatabase(nama, keluhan, userIdTarget)
+                Toast.makeText(context, pesan, Toast.LENGTH_SHORT).show()
+                prosesSimpanKeFirebase(nama, keluhan, userIdTarget, dialog)
             }
             .addOnFailureListener {
-                // Jika error koneksi, tetap simpan sebagai manual
-                simpanKeDatabase(nama, keluhan, "admin_manual")
+                // Jika error koneksi saat mencari, tetap simpan sebagai manual
+                prosesSimpanKeFirebase(nama, keluhan, "admin_manual", dialog)
             }
     }
 
-    private fun simpanKeDatabase(nama: String, keluhan: String, userId: String) {
+    private fun prosesSimpanKeFirebase(nama: String, keluhan: String, userId: String, dialog: AlertDialog) {
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
-        // Cek nomor antrian terakhir
-        db.collection("antrian").document(today).collection("pasien").get().addOnSuccessListener { res ->
-            val no = res.size() + 1
+        // Cek jumlah antrian saat ini untuk menentukan nomor urut
+        db.collection("antrian").document(today).collection("pasien").get()
+            .addOnSuccessListener { result ->
+                val nomorBaru = result.size() + 1
 
-            val data = Antrian(
-                namaPasien = nama,
-                nomorAntrian = no,
-                status = "Menunggu",
-                userId = userId, // <--- Ini kuncinya (UID Asli atau "admin_manual")
-                tanggal = today,
-                keluhan = "$keluhan (Manual)"
-            )
+                val antrianBaru = Antrian(
+                    id = "", // Akan diisi otomatis oleh Firestore atau bisa dikosongkan
+                    namaPasien = nama,
+                    nomorAntrian = nomorBaru,
+                    status = "Menunggu",
+                    userId = userId, // ID User Asli atau "admin_manual"
+                    tanggal = today,
+                    keluhan = "$keluhan (Input Admin)"
+                )
 
-            db.collection("antrian").document(today).collection("pasien").add(data).addOnSuccessListener {
-                // Trigger update waktu agar admin dashboard refresh
-                db.collection("antrian").document(today).set(mapOf("lastUpdate" to Date()))
+                db.collection("antrian").document(today).collection("pasien")
+                    .add(antrianBaru)
+                    .addOnSuccessListener {
+                        Toast.makeText(context, "Berhasil ditambahkan! No: $nomorBaru", Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(context, "Gagal menyimpan: ${it.message}", Toast.LENGTH_SHORT).show()
+                        dialog.dismiss() // Atau biarkan terbuka
+                    }
             }
-        }
     }
 
-    private fun updateStatus(id: String, status: String) {
+    private fun hapusAntrian(antrian: Antrian) {
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        db.collection("antrian").document(today).collection("pasien").document(id).update("status", status)
-    }
-
-    private fun observeData() {
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        db.collection("antrian").document(today).collection("pasien").addSnapshotListener { s, _ ->
-            if (s != null) {
-                listPasien = s.toObjects(Antrian::class.java).onEachIndexed { i, d -> d.id = s.documents[i].id }
-                updateUI()
-            }
-        }
-    }
-
-    private fun updateUI() {
-        val current = listPasien.find { it.status == "Dipanggil" }
-        binding.tvNamaPasienDipanggilAdmin.text = current?.namaPasien ?: "-"
-
-        val totalSelesai = listPasien.count { it.status == "Selesai" }
-        val totalMenunggu = listPasien.count { it.status == "Menunggu" || it.status == "Dipanggil" }
-
-        binding.tvTotalPasien.text = "Total: ${listPasien.size} | Selesai: $totalSelesai | Menunggu: $totalMenunggu"
-
-        antrianAdapter.updateData(listPasien.sortedBy { it.nomorAntrian })
-        binding.tvEmptyStateAdmin.visibility = if (listPasien.isEmpty()) View.VISIBLE else View.GONE
-    }
-
-    private fun setupRecycler() {
-        antrianAdapter = AntrianAdapter(emptyList(), true) { antrian ->
-            val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        if (antrian.id.isNotEmpty()) {
             AlertDialog.Builder(requireContext())
-                .setTitle("Hapus")
-                .setMessage("Hapus ${antrian.namaPasien}?")
-                .setPositiveButton("Ya") { _,_ ->
-                    db.collection("antrian").document(today).collection("pasien").document(antrian.id).delete()
+                .setTitle("Hapus Antrian?")
+                .setMessage("Apakah Anda yakin ingin menghapus antrian ${antrian.namaPasien}?")
+                .setPositiveButton("Hapus") { _, _ ->
+                    db.collection("antrian").document(today).collection("pasien")
+                        .document(antrian.id)
+                        .delete()
+                        .addOnSuccessListener {
+                            Toast.makeText(context, "Antrian dihapus", Toast.LENGTH_SHORT).show()
+                        }
                 }
-                .setNegativeButton("Batal", null).show()
+                .setNegativeButton("Batal", null)
+                .show()
         }
-        binding.rvAntrianAdmin.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvAntrianAdmin.adapter = antrianAdapter
     }
 
     override fun onDestroyView() {

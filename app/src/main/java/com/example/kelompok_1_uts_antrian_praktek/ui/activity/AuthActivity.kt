@@ -22,6 +22,7 @@ class AuthActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO)
         binding = ActivityAuthBinding.inflate(layoutInflater)
         setContentView(binding.root)
         supportActionBar?.hide()

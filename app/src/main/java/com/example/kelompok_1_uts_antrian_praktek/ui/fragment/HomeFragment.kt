@@ -3,6 +3,7 @@ package com.example.kelompok_1_uts_antrian_praktek.ui.fragment
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -23,12 +24,10 @@ import com.example.kelompok_1_uts_antrian_praktek.R
 import com.example.kelompok_1_uts_antrian_praktek.data.SessionManager
 import com.example.kelompok_1_uts_antrian_praktek.databinding.FragmentHomeBinding
 import com.example.kelompok_1_uts_antrian_praktek.model.Antrian
+import com.example.kelompok_1_uts_antrian_praktek.ui.activity.MainActivity
 import com.example.kelompok_1_uts_antrian_praktek.ui.activity.QueueFormActivity
 import com.example.kelompok_1_uts_antrian_praktek.ui.adapter.AntrianAdapter
 import com.example.kelompok_1_uts_antrian_praktek.ui.viewmodel.MainViewModel
-import com.google.firebase.firestore.FirebaseFirestore
-import java.text.SimpleDateFormat
-import java.util.*
 
 class HomeFragment : Fragment() {
 
@@ -36,17 +35,16 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: MainViewModel by viewModels()
     private lateinit var antrianAdapter: AntrianAdapter
-    private val db = FirebaseFirestore.getInstance()
 
-    // Variabel agar notifikasi tidak bunyi berulang untuk nomor yang sama
+    // Variabel untuk notifikasi agar tidak spam
     private var lastNotifiedNumber: Int = -1
 
-    // Launcher untuk minta izin notifikasi (Android 13+)
+    // Permission Launcher untuk Android 13+
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (!isGranted) {
-            Toast.makeText(requireContext(), "Notifikasi dimatikan", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Izin notifikasi ditolak", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -58,25 +56,30 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 1. Setup Saluran Notifikasi (Wajib untuk Android O ke atas)
+        // 1. Setup Awal (Notifikasi & Recycler)
         createNotificationChannel()
-        // 2. Cek Izin
         checkNotificationPermission()
-
         setupRecycler()
 
+        // 2. Load Data User (Untuk Header "Hallo, Nama")
+        viewModel.loadUserProfile()
+        viewModel.userData.observe(viewLifecycleOwner) { user ->
+            binding.tvWelcomeTitle.text = "Hallo, ${user.fullName}"
+        }
+
+        // 3. Load & Observe Antrian (Untuk List & Info)
         viewModel.observeAntrianToday()
         viewModel.antrianList.observe(viewLifecycleOwner) { list ->
             updateUI(list)
         }
 
+        // 4. Tombol Tambah Antrian
         binding.fabAddQueue.setOnClickListener {
             startActivity(Intent(requireContext(), QueueFormActivity::class.java))
         }
     }
 
     private fun updateUI(list: List<Antrian>) {
-        // ... (Logika update list seperti sebelumnya) ...
         if (list.isEmpty()) {
             binding.tvEmptyState.visibility = View.VISIBLE
             binding.rvAntrian.visibility = View.GONE
@@ -86,6 +89,7 @@ class HomeFragment : Fragment() {
             antrianAdapter.updateData(list)
         }
 
+        // Logika Info Panel
         val current = list.find { it.status == "Dipanggil" }
         val myQueue = list.find { it.userId == SessionManager.currentLoggedInUserId }
 
@@ -94,71 +98,68 @@ class HomeFragment : Fragment() {
 
         if (myQueue != null && myQueue.status == "Menunggu") {
             val depan = list.count { it.status == "Menunggu" && it.nomorAntrian < myQueue.nomorAntrian }
-            binding.tvEstimasiWaktu.text = "Estimasi ${(depan*10)+10} menit"
+            binding.tvEstimasiWaktu.text = "Estimasi ${(depan * 10) + 10} menit"
         } else {
             binding.tvEstimasiWaktu.text = myQueue?.status ?: "Belum ambil"
         }
 
-        // --- LOGIKA NOTIFIKASI (Sesuai Materi M08) ---
+        // Cek Notifikasi
         checkAndSendNotification(myQueue, current)
     }
 
+    private fun setupRecycler() {
+        antrianAdapter = AntrianAdapter(emptyList(), false) { /* Read only here */ }
+        binding.rvAntrian.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvAntrian.adapter = antrianAdapter
+    }
+
+    // --- LOGIKA NOTIFIKASI ---
     private fun checkAndSendNotification(myQueue: Antrian?, current: Antrian?) {
         if (myQueue == null || current == null) return
 
-        // Hitung jarak antrian
         val diff = myQueue.nomorAntrian - current.nomorAntrian
-
-        // Cek agar tidak spam (hanya bunyi jika nomor yang dipanggil berubah)
         if (current.nomorAntrian == lastNotifiedNumber) return
 
-        // KONDISI 1: Giliran Hampir Tiba (Kurang dari 2 orang)
+        // 1. Giliran Hampir Tiba (Kurang 1-2 orang)
         if (myQueue.status == "Menunggu" && diff in 1..2) {
-            sendNotification(
-                "Giliran Hampir Tiba!",
-                "Persiapkan diri Anda, ${diff} antrian lagi menuju giliran Anda."
-            )
+            sendNotification("Giliran Hampir Tiba!", "Persiapkan diri Anda, tinggal $diff antrian lagi.")
             lastNotifiedNumber = current.nomorAntrian
         }
 
-        // KONDISI 2: Giliran Pasien Dipanggil
-        if (myQueue.status == "Menunggu" && diff == 0) {
-            sendNotification(
-                "Giliran Anda!",
-                "Nomor ${myQueue.nomorAntrian} sedang dipanggil dokter. Silakan masuk."
-            )
+        // 2. Giliran Dipanggil
+        if ((myQueue.status == "Menunggu" && diff == 0) || (current.userId == myQueue.userId)) {
+            sendNotification("Giliran Anda!", "Nomor ${myQueue.nomorAntrian} sedang dipanggil dokter!")
             lastNotifiedNumber = current.nomorAntrian
         }
     }
 
     private fun sendNotification(title: String, message: String) {
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            return // Jangan kirim jika tidak ada izin
-        }
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
 
-        // Membuat Builder Notifikasi (Slide 531)
+        val intent = Intent(requireContext(), MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(requireContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
         val builder = NotificationCompat.Builder(requireContext(), "CHANNEL_ANTRIAN")
-            .setSmallIcon(R.mipmap.ic_launcher) // Ganti dengan R.drawable.ic_app_logo jika ada
+            .setSmallIcon(R.drawable.ic_launcher_foreground) // Pastikan icon ada
             .setContentTitle(title)
             .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_HIGH) // Heads-up notification
-            .setVibrate(longArrayOf(0, 500, 200, 500)) // Getar
-            .setAutoCancel(true) // Hilang saat diklik
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
 
-        NotificationManagerCompat.from(requireContext()).notify(101, builder.build())
+        with(NotificationManagerCompat.from(requireContext())) {
+            notify(101, builder.build())
+        }
     }
 
     private fun createNotificationChannel() {
-        // Wajib untuk Android 8.0+ (API 26+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Notifikasi Antrian"
-            val descriptionText = "Channel untuk info antrian klinik"
-            val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel("CHANNEL_ANTRIAN", name, importance).apply {
-                description = descriptionText
+            val channel = NotificationChannel("CHANNEL_ANTRIAN", "Notifikasi Antrian", NotificationManager.IMPORTANCE_HIGH).apply {
+                description = "Channel untuk info panggilan antrian"
             }
-            val notificationManager: NotificationManager =
-                requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationManager = requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
     }
@@ -169,14 +170,6 @@ class HomeFragment : Fragment() {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
-    }
-
-    private fun setupRecycler() {
-        antrianAdapter = AntrianAdapter(emptyList(), false) {
-            // Logic Batal Antrian (Sama seperti sebelumnya)
-        }
-        binding.rvAntrian.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvAntrian.adapter = antrianAdapter
     }
 
     override fun onDestroyView() {

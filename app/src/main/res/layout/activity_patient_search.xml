@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?android:attr/windowBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:padding="16dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <ImageView
+                android:id="@+id/btn_back"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="?attr/homeAsUpIndicator"
+                app:tint="@color/white"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="4dp"
+                android:layout_marginEnd="16dp"/>
+            <TextView
+                android:text="Cari Data Pasien"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/et_search_query"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@android:color/white"
+            android:hint="Ketik nama pasien..."
+            android:textColorHint="#757575"
+            android:textColor="@color/black"
+            android:paddingHorizontal="16dp"
+            android:drawableEnd="@android:drawable/ic_menu_search"
+            android:drawableTint="@color/black"
+            android:inputType="textPersonName"
+            android:imeOptions="actionSearch"
+            android:maxLines="1"/>
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_patient_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp"/>
+
+</LinearLayout>

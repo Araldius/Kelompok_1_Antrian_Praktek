@@ -14,7 +14,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:title="Dasbor Dokter"
+            app:title="Dashboard Dokter"
             app:titleTextColor="@color/white"/>
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -114,6 +114,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:orientation="horizontal">
+
             <Button
                 android:id="@+id/btn_pindah_akhir"
                 style="@style/Widget.MaterialComponents.Button.TextButton"
@@ -121,6 +122,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Terlambat"
+                android:textSize="12sp"
                 android:textColor="@color/design_default_color_error" />
             <Button
                 android:id="@+id/btn_selesai"
@@ -130,13 +132,15 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:text="Selesai" />
+                android:text="Selesai"
+                android:textSize="12sp" />
             <Button
                 android:id="@+id/btn_panggil_berikutnya"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Panggil"
+                android:textSize="12sp"
                 android:backgroundTint="@color/green_primary"/>
         </LinearLayout>
 

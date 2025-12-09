@@ -7,45 +7,49 @@ import com.example.kelompok_1_uts_antrian_praktek.model.Antrian
 import com.example.kelompok_1_uts_antrian_praktek.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
 import java.util.*
 
 class MainViewModel : ViewModel() {
+
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
+    // LiveData untuk Daftar Antrian Hari Ini
     private val _antrianList = MutableLiveData<List<Antrian>>()
-    val antrianList: LiveData<List<Antrian>> = _antrianList
+    val antrianList: LiveData<List<Antrian>> get() = _antrianList
 
+    // LiveData untuk Data User (Agar bisa sapa nama)
     private val _userData = MutableLiveData<User>()
-    val userData: LiveData<User> = _userData
+    val userData: LiveData<User> get() = _userData
 
-    // Load Data User untuk Profile
+    // --- FUNGSI 1: Ambil Data User yang Sedang Login ---
     fun loadUserProfile() {
         val uid = auth.currentUser?.uid ?: return
+
         db.collection("users").document(uid).get()
             .addOnSuccessListener { document ->
-                if (document != null && document.exists()) {
-                    _userData.value = document.toObject(User::class.java)
+                if (document.exists()) {
+                    val user = document.toObject(User::class.java)
+                    if (user != null) {
+                        _userData.value = user
+                    }
                 }
             }
     }
 
-    // Load Antrian Realtime Hari Ini
+    // --- FUNGSI 2: Ambil/Dengar Antrian Hari Ini (Realtime) ---
     fun observeAntrianToday() {
-        val todayDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        db.collection("antrian").document(todayDate).collection("pasien")
-            .orderBy("nomorAntrian", Query.Direction.ASCENDING)
-            .addSnapshotListener { snapshots, _ ->
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+        db.collection("antrian").document(today).collection("pasien")
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) return@addSnapshotListener
+
                 if (snapshots != null) {
-                    val list = mutableListOf<Antrian>()
-                    for (doc in snapshots) {
-                        val data = doc.toObject(Antrian::class.java)
-                        data.id = doc.id
-                        list.add(data)
-                    }
-                    _antrianList.value = list
+                    val list = snapshots.toObjects(Antrian::class.java)
+                    // Urutkan berdasarkan nomor antrian
+                    _antrianList.value = list.sortedBy { it.nomorAntrian }
                 }
             }
     }

@@ -90,8 +90,7 @@ class DoctorHomeFragment : Fragment() {
                     keluhanAwal = pasien.keluhan,
                     diagnosa = etDiagnosa.text.toString(),
                     pengobatan = etObat.text.toString(),
-                    tanggal = pasien.tanggal,
-                    dokterPemeriksa = "dr. Pemeriksa"
+                    tanggal = pasien.tanggal
                 )
                 db.collection("rekam_medis").add(rm).addOnSuccessListener {
                     updateStatus(pasien.id, "Selesai")

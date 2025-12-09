@@ -7,6 +7,7 @@ import com.example.kelompok_1_uts_antrian_praktek.R
 import com.example.kelompok_1_uts_antrian_praktek.databinding.ActivityMainBinding
 import com.example.kelompok_1_uts_antrian_praktek.ui.fragment.HomeFragment
 import com.example.kelompok_1_uts_antrian_praktek.ui.fragment.MenuFragment
+import com.example.kelompok_1_uts_antrian_praktek.ui.fragment.PredictionFragment
 import com.example.kelompok_1_uts_antrian_praktek.ui.fragment.ScheduleFragment
 
 class MainActivity : AppCompatActivity() {
@@ -29,6 +30,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.nav_schedule -> {
                     loadFragment(ScheduleFragment())
+                    true
+                }
+                R.id.nav_prediction -> {
+                    loadFragment(PredictionFragment())
                     true
                 }
                 R.id.nav_menu -> {

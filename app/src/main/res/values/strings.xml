@@ -40,4 +40,19 @@
     <string name="menu_home">Beranda</string>
     <string name="menu_schedule">Jadwal</string>
     <string name="menu_profile">Menu</string>
+
+    <style name="LabelFormStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:layout_marginBottom">8dp</item>
+    </style>
+
+    <style name="InputFormStyle">
+        <item name="android:background">@android:drawable/edit_text</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+    </style>
 </resources>

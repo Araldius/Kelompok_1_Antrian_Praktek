@@ -8,5 +8,4 @@ data class RekamMedis(
     var diagnosa: String = "",
     var pengobatan: String = "",
     var tanggal: String = "",
-    var dokterPemeriksa: String = ""
 )
